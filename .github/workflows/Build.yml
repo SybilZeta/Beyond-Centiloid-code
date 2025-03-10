@@ -17,20 +17,23 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Cache vcpkg
+        id: cache-vcpkg
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/vcpkg
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}-2025-03-09
           restore-keys: ${{ runner.os }}-vcpkg-
 
       - name: Install vcpkg
+        if: steps.cache-vcpkg.outputs.cache-hit != 'true'
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: '9c8f4e6e8c8f4e6e8c8f4e6e8c8f4e6e8c8f4e6e'  # 示例 SHA1，需替换为实际值
+          vcpkgGitCommitId: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0'  # 替换为实际最新 SHA1
+          vcpkgGitURL: 'https://github.com/microsoft/vcpkg.git'
 
       - name: Install dependencies via vcpkg
         run: |
-          .\vcpkg\vcpkg install itk simpleitk onnxruntime
+          .\vcpkg\vcpkg install itk simpleitk onnxruntime --recurse
 
       - name: Build with CMake
         run: |
