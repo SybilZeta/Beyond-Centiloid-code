@@ -11,20 +11,38 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Set up CMake
-        uses: lukka/get-cmake@v3
+    # Ubuntu：安装 CMake
+    - name: Install CMake on Ubuntu
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt update
+        sudo apt install -y cmake ninja-build
 
-      - name: Configure CMake
-        run: cmake -S . -B build
+    # macOS：安装 CMake
+    - name: Install CMake on macOS
+      if: matrix.os == 'macos-latest'
+      run: brew install cmake ninja
 
-      - name: Build
-        run: cmake --build build --config Release
+    # Windows：安装 CMake
+    - name: Install CMake on Windows
+      if: matrix.os == 'windows-latest'
+      uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Run tests
-        run: ctest --test-dir build
+    # 配置 CMake
+    - name: Configure CMake
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+    # 编译项目
+    - name: Build
+      run: cmake --build build --config Release
+
+    # 运行测试（如果有）
+    - name: Run Tests
+      working-directory: build
+      run: ctest --verbose
