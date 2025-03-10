@@ -1,0 +1,77 @@
+name: Build DCCCSlider
+
+on: [push, pull_request]
+
+env:
+  ONNXRUNTIM_VERSION: 1.20.1  # 根据需要更新为最新版本
+
+jobs:
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-2022
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Install vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          committish: latest
+      - name: Build with CMake
+        run: |
+          cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+          cmake --build build --config Release
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: DCCCSlider-windows
+          path: build/Release/DCCCSlider.exe
+
+  build-macos:
+    name: Build on macOS
+    runs-on: macOS-12
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Download ONNX Runtime binary
+        run: |
+          curl -L -o onnxruntime.tar.gz https://github.com/Microsoft/onnxruntime/releases/download/v${{ env.ONNXRUNTIM_VERSION }}/onnxruntime-osx-x64-${{ env.ONNXRUNTIM_VERSION }}.tar.gz
+          tar -xzf onnxruntime.tar.gz
+      - name: Set extracted directory name
+        run: |
+          EXTRACTED_DIR=onnxruntime-osx-x64-${{ env.ONNXRUNTIM_VERSION }}
+          echo "EXTRACTED_DIR=$EXTRACTED_DIR" >> $GITHUB_ENV
+      - name: Build with CMake
+        run: |
+          cmake -S . -B build -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/${{ env.EXTRACTED_DIR }}
+          cmake --build build --config Release
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: DCCCSlider-macos
+          path: build/DCCCSlider
+
+  build-linux:
+    name: Build on Linux
+    runs-on: Ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Download ONNX Runtime binary
+        run: |
+          curl -L -o onnxruntime.tar.gz https://github.com/Microsoft/onnxruntime/releases/download/v${{ env.ONNXRUNTIM_VERSION }}/onnxruntime-linux-x64-${{ env.ONNXRUNTIM_VERSION }}.tar.gz
+          tar -xzf onnxruntime.tar.gz
+      - name: Set extracted directory name
+        run: |
+          EXTRACTED_DIR=onnxruntime-linux-x64-${{ env.ONNXRUNTIM_VERSION }}
+          echo "EXTRACTED_DIR=$EXTRACTED_DIR" >> $GITHUB_ENV
+      - name: Build with CMake
+        run: |
+          cmake -S . -B build -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/${{ env.EXTRACTED_DIR }}
+          cmake --build build --config Release
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: DCCCSlider-linux
+          path: build/DCCCSlider
