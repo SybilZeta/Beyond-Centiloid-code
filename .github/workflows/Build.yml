@@ -11,19 +11,22 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # 升级到 v4
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
       - name: Install vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          committish: latest
+          vcpkgGitCommitId: 'HEAD'  # 使用最新 vcpkg 提交，或指定特定版本如 'e7c6e4b'
+      - name: Install ONNX Runtime via vcpkg
+        run: |
+          .\vcpkg\vcpkg install onnxruntime
       - name: Build with CMake
         run: |
-          cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+          cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake
           cmake --build build --config Release
       - name: Upload artifact
-        uses: actions/upload-artifact@v4  # 更新为 v4
+        uses: actions/upload-artifact@v4
         with:
           name: DCCCSlider-windows
           path: build/Release/DCCCSlider.exe
@@ -33,10 +36,10 @@ jobs:
     runs-on: macOS-12
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # 升级到 v4
       - name: Download ONNX Runtime binary
         run: |
-          curl -L -o onnxruntime.tar.gz https://github.com/Microsoft/onnxruntime/releases/download/v${{ env.ONNXRUNTIM_VERSION }}/onnxruntime-osx-x64-${{ env.ONNXRUNTIM_VERSION }}.tar.gz
+          curl -L -o onnxruntime.tar.gz "https://github.com/microsoft/onnxruntime/releases/download/v${{ env.ONNXRUNTIM_VERSION }}/onnxruntime-osx-x64-${{ env.ONNXRUNTIM_VERSION }}.tgz"
           tar -xzf onnxruntime.tar.gz
       - name: Set extracted directory name
         run: |
@@ -47,20 +50,20 @@ jobs:
           cmake -S . -B build -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/${{ env.EXTRACTED_DIR }}
           cmake --build build --config Release
       - name: Upload artifact
-        uses: actions/upload-artifact@v4  # 更新为 v4
+        uses: actions/upload-artifact@v4
         with:
           name: DCCCSlider-macos
           path: build/DCCCSlider
 
   build-linux:
     name: Build on Linux
-    runs-on: Ubuntu-22.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # 升级到 v4
       - name: Download ONNX Runtime binary
         run: |
-          curl -L -o onnxruntime.tar.gz https://github.com/Microsoft/onnxruntime/releases/download/v${{ env.ONNXRUNTIM_VERSION }}/onnxruntime-linux-x64-${{ env.ONNXRUNTIM_VERSION }}.tar.gz
+          curl -L -o onnxruntime.tar.gz "https://github.com/microsoft/onnxruntime/releases/download/v${{ env.ONNXRUNTIM_VERSION }}/onnxruntime-linux-x64-${{ env.ONNXRUNTIM_VERSION }}.tgz"
           tar -xzf onnxruntime.tar.gz
       - name: Set extracted directory name
         run: |
@@ -71,7 +74,6 @@ jobs:
           cmake -S . -B build -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/${{ env.EXTRACTED_DIR }}
           cmake --build build --config Release
       - name: Upload artifact
-        uses: actions/upload-artifact@v4  # 更新为 v4
+        uses: actions/upload-artifact@v4
         with:
-          name: DCCCSlider-linux
-          path: build/DCCCSlider
+          name: DCCCSlider
