@@ -23,7 +23,7 @@ jobs:
           cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
           cmake --build build --config Release
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # 更新为 v4
         with:
           name: DCCCSlider-windows
           path: build/Release/DCCCSlider.exe
@@ -47,7 +47,7 @@ jobs:
           cmake -S . -B build -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/${{ env.EXTRACTED_DIR }}
           cmake --build build --config Release
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # 更新为 v4
         with:
           name: DCCCSlider-macos
           path: build/DCCCSlider
@@ -71,7 +71,7 @@ jobs:
           cmake -S . -B build -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/${{ env.EXTRACTED_DIR }}
           cmake --build build --config Release
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # 更新为 v4
         with:
           name: DCCCSlider-linux
           path: build/DCCCSlider
