@@ -3,7 +3,7 @@ name: Build CentiloidCalculator
 on: [push, pull_request]
 
 env:
-  ONNXRUNTIM_VERSION: 1.20.1
+  ONNXRUNTIM_VERSION: 1.20.1  # 可根据需要更新为最新版本
 
 jobs:
   build-windows:
@@ -12,25 +12,31 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
+
       - name: Cache vcpkg
         uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/vcpkg
           key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: ${{ runner.os }}-vcpkg-
+
       - name: Install vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: 'b7f5f4a8e1e8e5b1b8b8e5b1b8b8e5b1b8b8e5b1'  # 替换为实际 SHA1
+          vcpkgGitCommitId: '9c8f4e6e8c8f4e6e8c8f4e6e8c8f4e6e8c8f4e6e'  # 示例 SHA1，需替换为实际值
+
       - name: Install dependencies via vcpkg
         run: |
           .\vcpkg\vcpkg install itk simpleitk onnxruntime
+
       - name: Build with CMake
         run: |
           cmake -S cpp -B build -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake
           cmake --build build --config Release
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -43,21 +49,26 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Install ITK and SimpleITK via Homebrew
         run: |
           brew install itk simpleitk
+
       - name: Download ONNX Runtime binary
         run: |
           curl -L -o onnxruntime.tar.gz "https://github.com/microsoft/onnxruntime/releases/download/v${{ env.ONNXRUNTIM_VERSION }}/onnxruntime-osx-x64-${{ env.ONNXRUNTIM_VERSION }}.tgz"
           tar -xzf onnxruntime.tar.gz
+
       - name: Set extracted directory name
         run: |
           EXTRACTED_DIR=onnxruntime-osx-x64-${{ env.ONNXRUNTIM_VERSION }}
           echo "EXTRACTED_DIR=$EXTRACTED_DIR" >> $GITHUB_ENV
+
       - name: Build with CMake
         run: |
           cmake -S cpp -B build -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/${{ env.EXTRACTED_DIR }}
           cmake --build build --config Release
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -70,22 +81,27 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Install ITK and SimpleITK
         run: |
           sudo apt-get update
-          sudo apt-get install -y libinsighttoolkit5-dev libsimpleitk-dev
+          sudo apt-get install -y libinsighttoolkit5-dev libsimpleitk1-dev
+
       - name: Download ONNX Runtime binary
         run: |
           curl -L -o onnxruntime.tar.gz "https://github.com/microsoft/onnxruntime/releases/download/v${{ env.ONNXRUNTIM_VERSION }}/onnxruntime-linux-x64-${{ env.ONNXRUNTIM_VERSION }}.tgz"
           tar -xzf onnxruntime.tar.gz
+
       - name: Set extracted directory name
         run: |
           EXTRACTED_DIR=onnxruntime-linux-x64-${{ env.ONNXRUNTIM_VERSION }}
           echo "EXTRACTED_DIR=$EXTRACTED_DIR" >> $GITHUB_ENV
+
       - name: Build with CMake
         run: |
           cmake -S cpp -B build -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/${{ env.EXTRACTED_DIR }}
           cmake --build build --config Release
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
