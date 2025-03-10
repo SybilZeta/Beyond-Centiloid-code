@@ -1,9 +1,9 @@
-name: Build DCCCSlider
+name: Build CentiloidCalculator
 
 on: [push, pull_request]
 
 env:
-  ONNXRUNTIM_VERSION: 1.20.1  # 根据需要更新为最新版本
+  ONNXRUNTIM_VERSION: 1.20.1
 
 jobs:
   build-windows:
@@ -11,32 +11,35 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # 升级到 v4
+        uses: actions/checkout@v4
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
       - name: Install vcpkg
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: 'HEAD'  # 使用最新 vcpkg 提交，或指定特定版本如 'e7c6e4b'
-      - name: Install ONNX Runtime via vcpkg
+          vcpkgGitCommitId: 'e7c6e4b4b8f8e5b1b8b8e5b1b8b8e5b1b8b8e5b1'  # 替换为实际 SHA1
+      - name: Install dependencies via vcpkg
         run: |
-          .\vcpkg\vcpkg install onnxruntime
+          .\vcpkg\vcpkg install itk simpleitk onnxruntime
       - name: Build with CMake
         run: |
-          cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake
+          cmake -S cpp -B build -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake
           cmake --build build --config Release
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DCCCSlider-windows
-          path: build/Release/DCCCSlider.exe
+          name: CentiloidCalculator-windows
+          path: build/Release/CentiloidCalculator.exe
 
   build-macos:
     name: Build on macOS
     runs-on: macOS-12
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # 升级到 v4
+        uses: actions/checkout@v4
+      - name: Install ITK and SimpleITK via Homebrew
+        run: |
+          brew install itk simpleitk
       - name: Download ONNX Runtime binary
         run: |
           curl -L -o onnxruntime.tar.gz "https://github.com/microsoft/onnxruntime/releases/download/v${{ env.ONNXRUNTIM_VERSION }}/onnxruntime-osx-x64-${{ env.ONNXRUNTIM_VERSION }}.tgz"
@@ -47,20 +50,24 @@ jobs:
           echo "EXTRACTED_DIR=$EXTRACTED_DIR" >> $GITHUB_ENV
       - name: Build with CMake
         run: |
-          cmake -S . -B build -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/${{ env.EXTRACTED_DIR }}
+          cmake -S cpp -B build -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/${{ env.EXTRACTED_DIR }}
           cmake --build build --config Release
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DCCCSlider-macos
-          path: build/DCCCSlider
+          name: CentiloidCalculator-macos
+          path: build/CentiloidCalculator
 
   build-linux:
     name: Build on Linux
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # 升级到 v4
+        uses: actions/checkout@v4
+      - name: Install ITK and SimpleITK
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libinsighttoolkit4-dev libsimpleitk1-dev
       - name: Download ONNX Runtime binary
         run: |
           curl -L -o onnxruntime.tar.gz "https://github.com/microsoft/onnxruntime/releases/download/v${{ env.ONNXRUNTIM_VERSION }}/onnxruntime-linux-x64-${{ env.ONNXRUNTIM_VERSION }}.tgz"
@@ -71,9 +78,10 @@ jobs:
           echo "EXTRACTED_DIR=$EXTRACTED_DIR" >> $GITHUB_ENV
       - name: Build with CMake
         run: |
-          cmake -S . -B build -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/${{ env.EXTRACTED_DIR }}
+          cmake -S cpp -B build -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/${{ env.EXTRACTED_DIR }}
           cmake --build build --config Release
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DCCCSlider
+          name: CentiloidCalculator-linux
+          path: build/CentiloidCalculator
